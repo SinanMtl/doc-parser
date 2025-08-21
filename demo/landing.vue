@@ -12,11 +12,16 @@
 		<section class="intro">
 			<header>
 				<img class="logo" src="https://teknasyon.com/content/assets/img/logo/teknasyon-logo-white.svg" alt="" />
-				<h1>{{ $t('src.views.landing.yerel') }}</h1>
-				<p>{{ $t('src.views.landing.we_2') }}</p>
+				<!-- ALREADY TRANSLATED -->
+				<div>{{ $t('intro.title') }}</div>
+				<h1>Yerel</h1>
+				<p>
+					We are a team that thinks big and has big goals. We start each new day with the aim of moving
+					ourselves one step forward.
+				</p>
 				<ul class="actions">
 					<li>
-						<a href="#first" class="arrow scrolly"><span class="label">{{ $t('src.views.landing.next') }}</span></a>
+						<a href="#first" class="arrow scrolly"><span class="label">Next</span></a>
 					</li>
 				</ul>
 			</header>
@@ -30,35 +35,44 @@
 		<!-- Section -->
 		<section id="first">
 			<header>
-				<h2>{{ $t('src.views.landing.what') }}</h2>
+				<h2>What Do We Do?</h2>
 			</header>
 			<div class="content">
-				<p>{{ $t('src.views.landing.discover') }}</p>
+				<p>
+					Discover Teknasyon's focus! We develop mobile applications that touch lives and provide solutions to
+					needs with strong stories. We are a strategic business partner that enables brands to grow on a
+					global scale. Be a part of this story and discover Teknasyon for ventures.
+				</p>
 			</div>
 		</section>
 
 		<!-- Section -->
 		<section>
 			<header>
-				<h2>{{ $t('src.views.landing.our') }}</h2>
+				<h2>Our Services</h2>
 			</header>
 			<div class="content">
-				<p>{{ $t('src.views.landing.as_1') }}</p>
+				<p>
+					As Teknasyon, we offer a wide range of services. We aim for excellence in every project.
+				</p>
 
 				<!-- Section -->
 				<section>
 					<header>
-						<h3>{{ $t('src.views.landing.b2c') }}</h3>
-						<p>{{ $t('src.views.landing.we_1') }}</p>
+						<h3>B2C</h3>
+						<p>
+							We develop mobile applications that touch lives. By prioritizing user experience, we produce
+							solutions that make life easier for millions of people.
+						</p>
 					</header>
 					<div class="content">
 						<div class="gallery">
 							<a href="images/gallery/fulls/01.jpg" class="landscape"><img
-									src="https://teknasyon.com/content/uploads/btb-7-n-1.png" alt="{{ $t('src.views.landing.btb') }}" /></a>
+									src="https://teknasyon.com/content/uploads/btb-7-n-1.png" alt="BTB 7 N 1" /></a>
 							<a href="images/gallery/fulls/02.jpg"><img
-									src="https://teknasyon.com/content/uploads/esim-gorsel-1.png" alt="{{ $t('src.views.landing.esim') }}" /></a>
+									src="https://teknasyon.com/content/uploads/esim-gorsel-1.png" alt="E-Sim" /></a>
 							<a href="images/gallery/fulls/03.jpg"><img
-									src="https://teknasyon.com/content/uploads/lisa-gorsel-1.png" alt="{{ $t('src.views.landing.lisa') }}" /></a>
+									src="https://teknasyon.com/content/uploads/lisa-gorsel-1.png" alt="Lisa" /></a>
 							<a href="images/gallery/fulls/04.jpg" class="landscape"><img
 									src="https://teknasyon.com/content/uploads/gtc-gorsel.png" alt="GTC" /></a>
 						</div>
@@ -68,17 +82,21 @@
 				<!-- Section -->
 				<section>
 					<header>
-						<h3>{{ $t('src.views.landing.b2b') }}</h3>
-						<p>{{ $t('src.views.landing.we') }}</p>
+						<h3>B2B</h3>
+						<p>
+							We provide solutions to needs with strong stories. We develop projects that strengthen the
+							technological infrastructure of businesses by supporting them in their digital
+							transformation processes.
+						</p>
 					</header>
 					<div class="content">
 						<div class="gallery">
 							<a href="images/gallery/fulls/05.jpg" class="landscape"><img
-									src="https://teknasyon.com/content/uploads/rockads-laptop.png" alt="{{ $t('src.views.landing.rockads') }}" /></a>
+									src="https://teknasyon.com/content/uploads/rockads-laptop.png" alt="Rockads Laptop" /></a>
 							<a href="images/gallery/fulls/06.jpg" class="landscape"><img
-									src="https://teknasyon.com/content/uploads/desk-1.png" alt="{{ $t('src.views.landing.desk') }}" /></a>
+									src="https://teknasyon.com/content/uploads/desk-1.png" alt="Desk 1" /></a>
 							<a href="images/gallery/fulls/07.jpg" class="landscape"><img
-									src="https://teknasyon.com/content/uploads/zotlo2x.png" alt="{{ $t('src.views.landing.zotlo') }}" /></a>
+									src="https://teknasyon.com/content/uploads/zotlo2x.png" alt="Zotlo 2X" /></a>
 						</div>
 					</div>
 				</section>
@@ -87,25 +105,28 @@
 		</section>
 		<section>
 			<header>
-				<h2>{{ $t('src.views.landing.contact') }}</h2>
+				<h2>Contact Us</h2>
 			</header>
 			<div class="content">
-				<p>{{ $t('src.views.landing.as') }}</p>
+				<p>
+					As the Teknasyon family, we are happy to communicate with you. Contact us for your projects,
+					questions, or collaboration offers.
+				</p>
 				<form>
 					<div class="fields">
 						<div class="field half">
-							<input type="text" name="name" id="name" placeholder="{{ $t('src.views.landing.name') }}" />
+							<input type="text" name="name" id="name" placeholder="Name" />
 						</div>
 						<div class="field half">
-							<input type="email" name="email" id="email" placeholder="{{ $t('src.views.landing.email') }}" />
+							<input type="email" name="email" id="email" placeholder="Email" />
 						</div>
 						<div class="field">
-							<textarea name="message" id="message" placeholder="{{ $t('src.views.landing.your') }}" rows="7"></textarea>
+							<textarea name="message" id="message" placeholder="Your Message" rows="7"></textarea>
 						</div>
 					</div>
 					<ul class="actions">
 						<li>
-							<input type="submit" value="{{ $t('src.views.landing.send') }}" class="button primary" />
+							<input type="submit" value="Send Message" class="button primary" />
 						</li>
 					</ul>
 				</form>
@@ -113,12 +134,12 @@
 			<footer>
 				<ul class="items">
 					<li>
-						<h3>{{ $t('src.views.landing.phone') }}</h3>
+						<h3>Phone</h3>
 						<a href="#">+90 212 963 15 50</a>
 					</li>
 					<li>
-						<h3>{{ $t('src.views.landing.address') }}</h3>
-						<span>{{ $t('src.views.landing.bykdere') }}</span>
+						<h3>Address</h3>
+						<span>Büyükdere Cd. Uso Center Plaza No:245 Floor:7 Maslak - Istanbul</span>
 					</li>
 				</ul>
 			</footer>
@@ -130,44 +151,44 @@
 import { watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { locale, availableLocales } = useI18n();
+const { locale, availableLocales, t } = useI18n();
 const availableLanguages = availableLocales;
 
-const userMessage = '$t('src.views.landing.hello_1')';
-const userMessageAR = '$t('src.views.landing.mrhba_balaalm')';
-const userMessageJP = '$t('src.views.landing.cjk_text_way2_2')';
-const userMessageHB = '$t('src.views.landing.hebrew_text_4tz5')';
-const userMessageKR = '$t('src.views.landing.latin_text_454p')';
+const userMessage = 'Hello World!';
+const userMessageAR = 'مرحبا بالعالم!';
+const userMessageJP = 'こんにちは世界!';
+const userMessageHB = 'שלום עולם!';
+const userMessageKR = '안녕하세요 세계!';
 
 const messages = {
   // İngilizce
-  english: "$t('src.views.landing.hello')",
+  english: "Hello world, welcome to our application",
   
   // Türkçe
-  turkish: "$t('src.views.landing.merhaba')",
+  turkish: "Merhaba dünya, uygulamamıza hoş geldiniz",
   
   // Arapça
-  arabic: "$t('src.views.landing.mrhba_bkm_fy')",
+  arabic: "مرحبا بكم في تطبيقنا",
 
-	hebrew: "$t('src.views.landing.hebrew_text_yixa')",
+	hebrew: "שלום עולם",
 
   // Çince (Basitleştirilmiş)
-  chinese: "$t('src.views.landing.cjk_text_way2_1')",
+  chinese: "欢迎使用我们的应用程序",
   
   // Japonca
-  japanese: "$t('src.views.landing.cjk_text_way2')",
+  japanese: "私たちのアプリケーションへようこそ",
   
   // Rusça
-  russian: "$t('src.views.landing.cyrillic_text_rf21')",
+  russian: "Добро пожаловать в наше приложение",
   
   // Hintçe (Devanagari)
-  hindi: "$t('src.views.landing.devanagari_text_mlxb')",
+  hindi: "हमारे एप्लिकेशन में आपका स्वागत है",
   
   // İspanyolca
-  spanish: "$t('src.views.landing.bienvenido')",
+  spanish: "Bienvenido a nuestra aplicación",
   
   // Fransızca
-  french: "$t('src.views.landing.bienvenue')",
+  french: "Bienvenue dans notre application",
   
   // Technical strings (filtrelenmeli)
   apiUrl: "https://api.example.com/users",
@@ -179,7 +200,16 @@ const messages = {
   short: "OK"
 };
 
-console.log('User Message:', messages, userMessage, userMessageAR, userMessageJP, userMessageHB, userMessageKR);
+const translationPattern = /(?:\$t\(|\.t\(|i18n\.t\()\s*["'`]([^"'`]+)["'`]/g;
+
+const messageFromTranslate = t('hello.moto');
+
+console.log('User Message:', messages, userMessage, userMessageAR, userMessageJP, userMessageHB, userMessageKR, messageFromTranslate);
+
+const templateLiteralText = `
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Vivamus lacinia odio vitae vestibulum.
+`;
 
 watch(locale, (newLocale) => {
 	console.log('Locale changed to:', newLocale);
