@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files",
   "main": "document-parser.js",
+  "type": "module",
   "bin": {
     "doc-parser": "./lib/parse-cli.js"
   },
