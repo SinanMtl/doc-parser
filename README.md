@@ -1,168 +1,191 @@
 # Document Parser
 
-Bu proje JS, JSX, TS, TSX, Vue ve HTML dosyalarından anlamlı metinleri çıkaran güçlü bir parser'dır.
+A powerful parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files.
 
-## Özellikler
+## Features
 
-- **Çoklu Dosya Formatı Desteği**: JavaScript, TypeScript, JSX, TSX, Vue ve HTML dosyalarını parse eder
-- **Akıllı Metin Çıkarma**: Yorumlar, string literaller, HTML metinleri, sınıf isimleri, ID'ler ve çeviri anahtarlarını çıkarır
-- **Recursive Directory Parsing**: Klasörleri recursive olarak tarar
-- **Filtreleme**: Anlamsız ve boş metinleri otomatik filtreler
-- **Multiple Export Formats**: JSON ve text formatlarında sonuç export eder
-- **CLI Support**: Komut satırından kullanım
+- **Multi-Format File Support**: Parses JavaScript, TypeScript, JSX, TSX, Vue, and HTML files
+- **Smart Text Extraction**: Extracts string literals, HTML text content, and natural language attributes
+- **Advanced Filtering**: Automatically filters out code fragments, function parameters, and technical strings
+- **Multi-Language Support**: Supports Unicode characters (Arabic, Chinese, Japanese, Korean, etc.)
+- **Recursive Directory Parsing**: Recursively scans directories
+- **Multiple Export Formats**: Exports results in JSON and text formats
+- **CLI Support**: Command-line interface usage
+- **ES Modules**: Uses modern JavaScript ES Modules syntax
+- **Binary CLI Tool**: Global usage with `doc-parser` command
+- **Context-Aware Parsing**: Parses different sections separately in JSX and Vue files
 
-## Kurulum
+## Installation
 
 ```bash
-# Repository'yi klonlayın
+# Clone the repository
 git clone <repository-url>
 cd doc-parser
 
-# Veya sadece dosyaları indirin
+# For global installation
+npm install -g .
+
+# Or run locally without global installation
 ```
 
-## Kullanım
+## Usage
 
 ### Command Line Interface (CLI)
 
 ```bash
-# Bir klasörü parse et
-node parse-cli.js ./src
+# Usage after global installation
+doc-parser ./src
 
-# Sonuçları JSON dosyasına export et
-node parse-cli.js ./src --output-json results.json
+# Export results to JSON file
+doc-parser ./src --output-json results.json
 
-# Sonuçları text dosyasına export et
-node parse-cli.js ./src --output-text results.txt
+# Export results to text file
+doc-parser ./src --output-text results.txt
 
-# Tek bir dosyayı parse et
-node parse-cli.js ./components/Button.jsx
+# Parse a single file
+doc-parser ./demo/landing.jsx
 
-# Her iki format da export et
-node parse-cli.js ./src --output-json results.json --output-text results.txt
+# Export in both formats
+doc-parser ./src --output-json results.json --output-text results.txt
 
-# Yardım
-node parse-cli.js --help
+# Help
+doc-parser --help
+
+# Local usage (without global installation)
+node ./lib/parse-cli.js ./src
+node ./lib/parse-cli.js ./demo --output-json demo-results.json
 ```
 
 ### Package.json Scripts
 
 ```bash
-# Mevcut klasörü parse et ve example sonuçları oluştur
+# Parse current directory and create example results
 npm run example
 
-# Test çalıştır
+# Run tests
 npm test
 
-# Parse komutu (parametre gerekli)
+# Parse command (requires parameter)
 npm run parse ./src
+npm run parse ./demo
 ```
 
 ### Programmatic Usage
 
 ```javascript
-const DocumentParser = require('./document-parser');
+// ES Modules syntax (project uses ES modules)
+import DocumentParser from './lib/document-parser.js';
 
 const parser = new DocumentParser();
 
-// Tek dosya parse et
-const result = parser.parseFile('./components/Button.jsx');
+// Parse a single file
+const result = parser.parseFile('./demo/landing.jsx');
 console.log(result);
 
-// Klasör parse et
-const results = parser.parseDirectory('./src');
+// Parse a directory
+const results = parser.parseDirectory('./demo');
 
-// Sonuçları export et
+// Export results
 parser.exportToJson(results, 'output.json');
 parser.exportToText(results, 'output.txt');
 
-// Summary oluştur
+// Generate summary
 const summary = parser.generateSummary(results);
 console.log(summary);
 ```
 
-## Çıkarılan Metin Türleri
+## Extracted Text Types
 
-### JavaScript/TypeScript/JSX/TSX Files:
-- **Comments**: `//` ve `/* */` yorumları
-- **Strings**: String literaller (`"..."`, `'...'`, `\`...\``)
-- **JSX Text**: JSX elementleri içindeki metinler
-- **Class Names**: `className="..."` attributeları
-- **IDs**: `id="..."` attributeları  
-- **Translation Keys**: `$t('...')`, `t('...')`, `i18n.t('...')` pattern'leri
+### JavaScript/TypeScript Files (.js, .ts):
+- **Strings**: String literals (`"..."`, `'...'`, `\`...\``)
+- Function parameters and console.log messages are filtered out
+- Regex patterns and code fragments are automatically filtered
 
-### Vue Files:
-- **Template Section**: HTML benzeri yapılar
-- **Script Section**: JavaScript kodu
-- **Style Section**: CSS yorumları
-- **Vue Directives**: `v-model`, `v-if`, vb.
-- **Vue Translations**: `{{ $t('...') }}` pattern'leri
+### JSX/TSX Files (.jsx, .tsx):
+- **Strings**: String literals in JavaScript sections
+- **JSX Text Content**: Natural language text within JSX elements
+- **HTML Attributes**: Natural language attributes in JSX (alt, title, placeholder, etc.)
+- JavaScript and JSX sections are parsed separately
 
-### HTML Files:
-- **Comments**: `<!-- ... -->` yorumları
-- **Text Content**: Etiketler arasındaki metinler
-- **Attributes**: `class`, `id`, `alt`, `title`, `placeholder` attributeları
+### Vue Files (.vue):
+- **Template Section**: 
+  - HTML text content (text between tags)
+  - Natural language attributes (alt, title, placeholder, etc.)
+- **Script Section**: JavaScript string literals
+- **Template and script sections are parsed separately**
 
-## Örnek Çıktı
+### HTML Files (.html):
+- **Text Content**: Text between HTML tags  
+- **Attributes**: Natural language attributes (alt, title, placeholder, etc.)
+- **Script Tags**: JavaScript strings within `<script>` tags in HTML
+- HTML comments (`<!-- -->`) are currently not extracted
+
+## Example Output
 
 ### Console Output:
 ```
-Parsing: /path/to/project
+Parsing: /Users/sinanmutlu/root/doc-parser/demo
 Starting document parsing...
 
-Parsing completed! Found 15 files.
+Parsing directory recursively...
+
+Parsing completed! Found 3 files.
 
 === SUMMARY ===
-Total files processed: 15
-Total meaningful texts found: 127
+Total files processed: 3
+Total meaningful texts found: 130
 
 File types:
-  .vue: 8 files
-  .js: 4 files
-  .jsx: 2 files
   .html: 1 files
+  .jsx: 1 files
+  .vue: 1 files
 
 Text types found:
-  comments: 23 items
-  strings: 45 items
-  htmlText: 32 items
-  translationKeys: 18 items
-  classNames: 9 items
+  htmlText: 33 items
+  naturalLanguageAttributes: 22 items
+  strings: 75 items
 
 === SAMPLE TEXTS (first 10) ===
-1. [translationKeys] landing.vue: "src.views.landing.yerel"
-2. [htmlText] landing.vue: "Teknasyon"
-3. [comments] app.js: "Initialize the application"
-4. [strings] utils.js: "Error: Invalid input"
-5. [classNames] Button.jsx: "btn btn-primary"
-...
+1. [htmlText] landing.html: "Document"
+2. [string] landing.jsx: "Hello World!"
+3. [string] landing.jsx: "مرحبا بالعالم!"
+4. [string] landing.jsx: "こんにちは世界!"
+5. [string] landing.jsx: "שלום עולם!"
+6. [string] landing.jsx: "안녕하세요 세계!"
+7. [htmlText] landing.vue: "Yerel"
+8. [string] landing.jsx: "Hello world, welcome to our application"
+9. [htmlText] landing.vue: "We are a team that thinks big and has big goals..."
+10. [string] landing.jsx: "Merhaba dünya, uygulamamıza hoş geldiniz"
+... and 120 more texts
 ```
 
 ### JSON Output Structure:
 ```json
 {
   "metadata": {
-    "timestamp": "2025-08-20T10:30:00.000Z",
-    "totalFiles": 15,
+    "timestamp": "2025-08-22T10:30:00.000Z",
+    "totalFiles": 3,
     "supportedExtensions": [".js", ".jsx", ".ts", ".tsx", ".vue", ".html"]
   },
   "summary": {
-    "totalFiles": 15,
-    "totalTexts": 127,
+    "totalFiles": 3,
+    "totalTexts": 130,
     "fileTypes": {
-      ".vue": 8,
-      ".js": 4
+      ".html": 1,
+      ".jsx": 1,
+      ".vue": 1
     },
     "textTypes": {
-      "comments": 23,
-      "strings": 45
+      "htmlText": 33,
+      "naturalLanguageAttributes": 22,
+      "strings": 75
     },
     "allTexts": [
       {
-        "text": "src.views.landing.yerel",
-        "type": "translationKeys",
-        "file": "landing.vue",
-        "filePath": "/path/to/landing.vue"
+        "text": "Hello World!",
+        "type": "strings",
+        "file": "landing.jsx",
+        "filePath": "/path/to/demo/landing.jsx"
       }
     ]
   },
@@ -170,30 +193,48 @@ Text types found:
 }
 ```
 
-## Filtreleme Kuralları
+## Filtering Rules
 
-Parser aşağıdaki metinleri otomatik olarak filtreler:
+The parser automatically filters out the following texts:
 
-- Boş veya sadece whitespace içeren stringler
-- 2 karakterden kısa metinler
-- Sadece sayı içeren stringler
-- Sadece harf içermeyen stringler
-- Yaygın anlamsız kelimeler: `true`, `false`, `null`, `undefined`
-- HTML tag isimleri: `div`, `span`, `p`, vb.
+### General Filtering:
+- Empty or whitespace-only strings
+- Strings shorter than 2 characters  
+- Strings containing only numbers and symbols
+- HTML entities (`&copy;`, `&nbsp;`, etc.)
+- URLs and file paths
+- Regex pattern fragments
+- Common meaningless words: `true`, `false`, `null`, `undefined`, `ok`, `yes`, `no`
 
-## Test Etme
+### Code-specific Filtering:
+- camelCase function names (`handleUserClick`)
+- CSS class names (`btn-primary`)
+- snake_case variables (`user_name`)
+- CONSTANT_NAMES (`API_KEY`)
+- File extensions (`.js`, `.css`, `.png`, etc.)
+- Function parameters (console.log, require, import parameters)
+- Escape sequences (`\n`, `\t`, `\r`, etc.)
+- Template literal syntax fragments
+
+### Multi-Language Support:
+The parser supports Latin, Arabic, Chinese, Japanese, Korean, Cyrillic, and other Unicode characters and does not filter them out.
+
+## Testing
 
 ```bash
-# Test dosyasını çalıştır
-node test-parser.js
+# Directly
+node ./lib/test-parser.js
 
-# Veya npm script ile
-npm test
+# To parse demo files
+npm run example
+
+# or
+doc-parser ./demo --output-json demo-results.json --output-text demo-results.txt
 ```
 
-Bu komut mevcut klasördeki tüm dosyaları parse edip `test-results.json` ve `test-results.txt` dosyalarını oluşturur.
+These commands parse test files and export results in JSON and text formats.
 
-## Desteklenen Dosya Türleri
+## Supported File Types
 
 - `.js` - JavaScript files
 - `.jsx` - React JSX files  
@@ -202,9 +243,24 @@ Bu komut mevcut klasördeki tüm dosyaları parse edip `test-results.json` ve `t
 - `.vue` - Vue.js Single File Components
 - `.html` - HTML files
 
+## Project Structure
+
+```
+doc-parser/
+├── package.json          # Project configuration and scripts
+├── README.md            # This file
+├── lib/                 # Main library files
+│   ├── document-parser.js  # Main parser class
+│   └── parse-cli.js        # CLI tool
+└── demo/                # Demo files
+    ├── landing.html     # HTML demo
+    ├── landing.jsx      # React JSX demo
+    └── landing.vue      # Vue demo
+```
+
 ## Excluded Directories
 
-Parser otomatik olarak şu klasörleri atlar:
+The parser automatically skips the following directories:
 - `node_modules`
 - `.git`
 - `.next`
@@ -212,14 +268,14 @@ Parser otomatik olarak şu klasörleri atlar:
 - `build`
 - `.vscode`
 
-## Lisans
+## License
 
 MIT License
 
-## Katkıda Bulunma
+## Contributing
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add some amazing feature'`)
-4. Branch'i push edin (`git push origin feature/amazing-feature`)
-5. Pull Request açın
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request

@@ -2,6 +2,8 @@
   "name": "document-parser",
   "version": "1.0.0",
   "description": "A parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files",
+  "author": "Sinan Mutlu <smutludev@gmail.com>",
+  "license": "MIT",
   "main": "document-parser.js",
   "type": "module",
   "bin": {
@@ -22,8 +24,6 @@
     "html",
     "documentation"
   ],
-  "author": "Document Parser",
-  "license": "MIT",
   "engines": {
     "node": ">=12.0.0"
   },
