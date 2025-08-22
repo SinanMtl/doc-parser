@@ -62,9 +62,6 @@ node ./lib/parse-cli.js ./demo --output-json demo-results.json
 # Parse current directory and create example results
 npm run example
 
-# Run tests
-npm test
-
 # Parse command (requires parameter)
 npm run parse ./src
 npm run parse ./demo

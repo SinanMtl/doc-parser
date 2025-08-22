@@ -11,7 +11,6 @@
   },
   "scripts": {
     "parse": "node ./lib/parse-cli.js",
-    "test": "node ./lib/test-parser.js",
     "example": "node ./lib/parse-cli.js . --output-json example-results.json --output-text example-results.txt"
   },
   "keywords": [
