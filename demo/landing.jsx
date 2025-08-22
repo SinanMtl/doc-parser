@@ -74,6 +74,13 @@ const App = () => {
   Vivamus lacinia odio vitae vestibulum.
   `;
 
+  function sayHello(page, param2) {
+    console.log(page, 'Hello!!!', param2);
+    return page;
+  }
+
+  sayHello('Home page', 'Second param');
+
   return (
     <>
       <div className="language-selector">

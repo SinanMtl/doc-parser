@@ -211,6 +211,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 Vivamus lacinia odio vitae vestibulum.
 `;
 
+function sayHello(page: string, param2: string) {
+	console.log(page, 'Hello!!!', param2);
+	return page;
+}
+
+sayHello('Home page', 'Second param');
+
 watch(locale, (newLocale) => {
 	console.log('Locale changed to:', newLocale);
 });
