@@ -81,6 +81,15 @@ const App = () => {
 
   sayHello('Home page', 'Second param');
 
+  const attrName = 'data-i18n';
+
+  const attrPattern = new RegExp(
+    `\\b${attrName}\\s*=\\s*["']([^"']+)["']`,
+    'gi'
+  );
+
+  const attrPattern2 = new RegExp(`\\b${attrName}\\s*=\\s*["']([^"']+)["']`, 'gi');
+
   return (
     <>
       <div className="language-selector">

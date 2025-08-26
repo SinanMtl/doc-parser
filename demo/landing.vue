@@ -1,9 +1,9 @@
 <template>
 	<!-- Language Selector -->
 	<div class="language-selector">
-			<select v-model="locale" class="language-dropdown">
-				<option v-for="lang in availableLanguages" :key="lang" :value="lang" v-html="lang.toUpperCase()" />
-			</select>
+		<select v-model="locale" class="language-dropdown">
+			<option v-for="lang in availableLanguages" :key="lang" :value="lang" v-html="lang.toUpperCase()" />
+		</select>
 	</div>
 
 	<!-- Wrapper -->
@@ -215,6 +215,15 @@ function sayHello(page: string, param2: string) {
 	console.log(page, 'Hello!!!', param2);
 	return page;
 }
+
+const attrName = 'data-i18n';
+
+const attrPattern = new RegExp(
+	`\\b${attrName}\\s*=\\s*["']([^"']+)["']`,
+	'gi'
+);
+
+const attrPattern2 = new RegExp(`\\b${attrName}\\s*=\\s*["']([^"']+)["']`, 'gi');
 
 sayHello('Home page', 'Second param');
 

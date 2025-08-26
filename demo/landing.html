@@ -305,6 +305,15 @@
 
       console.log('User Message:', messages, userMessage, userMessageAR, userMessageJP, userMessageHB, userMessageKR, messageFromTranslate);
 
+      const attrName = 'data-i18n';
+
+      const attrPattern = new RegExp(
+        `\\b${attrName}\\s*=\\s*["']([^"']+)["']`,
+        'gi'
+      );
+
+      const attrPattern2 = new RegExp(`\\b${attrName}\\s*=\\s*["']([^"']+)["']`, 'gi');
+
       const templateLiteralText = `
       Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       Vivamus lacinia odio vitae vestibulum.
