@@ -1,6 +1,7 @@
+import { ExtractedText } from './document-parser.js';
 
 // Random text generator function
-function generateRandomText(length) {
+function generateRandomText(length: number): string {
   const words = [
     'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
     'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
@@ -42,7 +43,10 @@ function generateRandomText(length) {
   return result;
 }
 
-export function replaceExtractedTexts(sourceContent, extractedTexts) {
+export function replaceExtractedTexts(
+  sourceContent: string, 
+  extractedTexts: ExtractedText[]
+): string {
   let result = sourceContent;
   
   // Liste itemlerini absoluteStart pozisyonuna göre tersten sırala
@@ -54,7 +58,7 @@ export function replaceExtractedTexts(sourceContent, extractedTexts) {
     
     if (originalText) {
       // Orijinal text uzunluğunda random text generate et
-      const randomText = item.suggestedKey || generateRandomText(originalText.length);
+      const randomText = (item as any).suggestedKey || generateRandomText(originalText.length);
       
       // Replace string
       result = result.slice(0, item.absoluteStart) + randomText + result.slice(item.absoluteEnd);
@@ -63,4 +67,3 @@ export function replaceExtractedTexts(sourceContent, extractedTexts) {
 
   return result;
 }
-

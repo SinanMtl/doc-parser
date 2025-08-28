@@ -2,10 +2,17 @@
 
 import fs from 'fs';
 import path from 'path';
-import { DocumentParser } from './document-parser.js';
+import { DocumentParser, ParsedResult } from './document-parser';
+
+interface CliOptions {
+  target: string | null;
+  outputJson: string | null;
+  outputText: string | null;
+  showHelp: boolean;
+}
 
 // CLI usage function
-function showUsage() {
+function showUsage(): void {
   console.log(`
 Document Parser - Extract meaningful text from JS, JSX, TS, TSX, Vue, and HTML files
 
@@ -28,8 +35,8 @@ Supported file types: .js, .jsx, .ts, .tsx, .vue, .html
 }
 
 // Parse command line arguments
-function parseArgs(args) {
-  const options = {
+function parseArgs(args: string[]): CliOptions {
+  const options: CliOptions = {
     target: null,
     outputJson: null,
     outputText: null,
@@ -56,7 +63,7 @@ function parseArgs(args) {
 }
 
 // Main function
-function main() {
+function main(): void {
   const args = process.argv.slice(2);
   const options = parseArgs(args);
 
@@ -83,7 +90,7 @@ function main() {
   console.log('Starting document parsing...\n');
 
   const parser = new DocumentParser();
-  let results = [];
+  let results: ParsedResult[] = [];
 
   try {
     const stat = fs.statSync(targetPath);
@@ -94,9 +101,7 @@ function main() {
     } else if (stat.isFile()) {
       console.log('Parsing single file...');
       const result = parser.parseFile(targetPath);
-      if (result) {
-        results = [result];
-      }
+      if (result) results = [result];
     }
 
     console.log(`\nParsing completed! Found ${results.length} files.\n`);
@@ -116,8 +121,9 @@ function main() {
 
     console.log('\nText types found:');
     Object.keys(summary.textTypes).forEach((type) => {
-      if (summary.textTypes[type] > 0) {
-        console.log(`  ${type}: ${summary.textTypes[type]} items`);
+      const textType = type as keyof typeof summary.textTypes;
+      if (summary.textTypes[textType] > 0) {
+        console.log(`  ${type}: ${summary.textTypes[textType]} items`);
       }
     });
 
@@ -148,7 +154,7 @@ function main() {
 
     console.log('\nParsing completed successfully!');
   } catch (error) {
-    console.error(`Error during parsing: ${error.message}`);
+    console.error(`Error during parsing: ${(error as Error).message}`);
     process.exit(1);
   }
 }

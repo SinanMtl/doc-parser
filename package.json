@@ -4,15 +4,25 @@
   "description": "A parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files",
   "author": "Sinan Mutlu <smutludev@gmail.com>",
   "license": "MIT",
-  "main": "document-parser.js",
+  "main": "dist/document-parser.js",
+  "types": "dist/document-parser.d.ts",
   "type": "module",
   "bin": {
-    "doc-parser": "./lib/parse-cli.js"
+    "doc-parser": "./dist/parse-cli.js"
   },
   "scripts": {
-    "parse": "node ./lib/parse-cli.js",
-    "example": "node ./lib/parse-cli.js . --output-json example-results.json --output-text example-results.txt"
+    "build": "tsc --noEmit & vite build",
+    "dev": "vite build --watch",
+    "parse": "node ./dist/parse-cli.js",
+    "example": "node ./dist/parse-cli.js ./demo --output-json ./output/example-results.json --output-text ./output/example-results.txt",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "parser",
     "text-extraction",
@@ -21,11 +31,18 @@
     "vue",
     "react",
     "html",
-    "documentation"
+    "documentation",
+    "vite"
   ],
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=14.0.0"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "terser": "^5.43.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vite-plugin-dts": "^4.5.4"
+  }
 }

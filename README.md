@@ -4,6 +4,8 @@ A powerful parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and 
 
 ## Features
 
+- **Modern TypeScript**: Fully typed with TypeScript for better development experience
+- **Vite Build System**: Fast build process with Vite
 - **Multi-Format File Support**: Parses JavaScript, TypeScript, JSX, TSX, Vue, and HTML files
 - **Smart Text Extraction**: Extracts string literals, HTML text content, and natural language attributes
 - **Advanced Filtering**: Automatically filters out code fragments, function parameters, and technical strings
@@ -14,6 +16,7 @@ A powerful parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and 
 - **ES Modules**: Uses modern JavaScript ES Modules syntax
 - **Binary CLI Tool**: Global usage with `doc-parser` command
 - **Context-Aware Parsing**: Parses different sections separately in JSX and Vue files
+- **Type Safety**: Full TypeScript support with type definitions
 
 ## Installation
 
@@ -21,6 +24,12 @@ A powerful parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and 
 # Clone the repository
 git clone <repository-url>
 cd doc-parser
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
 
 # For global installation
 npm install -g .
@@ -69,14 +78,16 @@ npm run parse ./demo
 
 ### Programmatic Usage
 
-```javascript
-// ES Modules syntax (project uses ES modules)
-import DocumentParser from './lib/document-parser.js';
+```typescript
+// TypeScript (recommended)
+import { DocumentParser } from './dist/document-parser.js';
+// or
+import DocumentParser from './dist/document-parser.js';
 
 const parser = new DocumentParser();
 
 // Parse a single file
-const result = parser.parseFile('./demo/landing.jsx');
+const result = parser.parseFile('./demo/landing.vue');
 console.log(result);
 
 // Parse a directory
@@ -90,6 +101,32 @@ parser.exportToText(results, 'output.txt');
 const summary = parser.generateSummary(results);
 console.log(summary);
 ```
+
+```javascript
+// JavaScript ES Modules
+import { DocumentParser } from './dist/document-parser.js';
+
+const parser = new DocumentParser();
+
+// Parse with type safety
+const result = parser.parseFile('./demo/landing.jsx');
+console.log(result);
+```
+
+### Development Scripts
+
+```bash
+# Build the project
+npm run build
+
+# Build in watch mode (for development)
+npm run dev
+
+# Clean build directory
+npm run clean
+
+# Run example
+npm run example
 
 ## Extracted Text Types
 

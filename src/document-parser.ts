@@ -1,35 +1,100 @@
 import fs from 'fs';
 import path from 'path';
 
+export interface ExtractedText {
+  text: string;
+  type: 'htmlText' | 'string' | 'attribute';
+  context: 'javascript' | 'html' | 'vue';
+  lineNumber: number;
+  startPosition: number;
+  endPosition: number;
+  columnStart: number;
+  columnEnd: number;
+  absoluteStart: number;
+  absoluteEnd: number;
+  originalStartPosition: number;
+  originalEndPosition: number;
+  originalAbsoluteStart: number;
+  originalAbsoluteEnd: number;
+  originalMatch: string;
+  file?: string;
+  filePath?: string;
+  attribute?: string;
+}
+
+export interface ParsedResult {
+  filePath?: string;
+  fileName?: string;
+  extension: string;
+  extractedText: {
+    strings?: ExtractedText[];
+    htmlText?: ExtractedText[];
+    naturalLanguageAttributes?: ExtractedText[];
+    attributes?: ExtractedText[];
+    templateText?: ExtractedText[];
+    classNames?: ExtractedText[];
+    ids?: ExtractedText[];
+  };
+  timestamp: string;
+}
+
+export interface PositionInfo {
+  lineNumber: number;
+  startPosition: number;
+  endPosition: number;
+  columnStart: number;
+  columnEnd: number;
+  absoluteStart: number;
+  absoluteEnd: number;
+}
+
+export interface Summary {
+  totalFiles: number;
+  fileTypes: Record<string, number>;
+  totalTexts: number;
+  textTypes: {
+    htmlText: number;
+    naturalLanguageAttributes: number;
+    strings: number;
+  };
+  allTexts: ExtractedText[];
+}
+
+export interface ParseContentParams {
+  filePath?: string;
+  fileName?: string;
+}
+
 export class DocumentParser {
+  public supportedExtensions: string[];
+  public extractedTexts: ExtractedText[];
+
   constructor() {
     this.supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.vue', '.html'];
     this.extractedTexts = [];
   }
 
   /**
-     * Parse a single file and extract meaningful text
-     * @param {string} filePath - Path to the file
-     * @returns {Object} - Extracted text data
-         /**
-     * Check if text content is likely non-textual (like code, URLs, etc.)
-     * @param {string} text - Text to check
-     * @returns {boolean} - True if non-textual
-     */
-  isNonTextualContent(text) {
+   * Check if text content is likely non-textual (like code, URLs, etc.)
+   */
+  isNonTextualContent(payload: {
+    text: string,
+    isAttribute?: boolean,
+    isJS?: boolean
+  }) {
+    const { text, isAttribute = false, isJS = false } = payload;
     // Skip HTML entities, URLs, file paths, and other non-natural language content
     const nonTextualPatterns = [
       /^&[a-zA-Z]+;$/, // HTML entities like &copy;
       /^https?:\/\//, // URLs starting with http/https
       /^\/[\/\w-]+$/, // File paths
       /^[0-9\s\-\+\(\)]+$/, // Only numbers and symbols
-      /^[A-Z_]{3,}$/, // Constants like API_KEY
+      /^[A-Z_]{5,}$/, // Long constants like API_KEY (5+ chars)
       /^\s*$/, // Empty or whitespace only
       /^[\w-]+\.(js|css|png|jpg|gif|svg)$/i, // File names
       /^[a-z]+([A-Z][a-z]*)*$/, // camelCase function names like handleUserClick
       /^[a-z]+-[a-z-]+$/, // CSS class names like btn-primary
       /^[a-z]+_[a-z_]+$/i, // snake_case variables
-      /^[A-Z][A-Z0-9_]+$/, // CONSTANT_NAMES
       /api\..*\.com/i, // API URLs
       /^(ok|yes|no|true|false)$/i, // Very short technical words
       /^\w{1,2}$/, // Very short strings (1-2 chars)
@@ -52,22 +117,38 @@ export class DocumentParser {
       /^[^'"]*\)['"]*$/, // Regex pattern fragments
       /^:\s*\n\s*case\s*$/, // Switch case patterns
       /^,\s*\n\s*$/, // Comma with newline patterns
+      
+      ...(isJS ? [
+        /^[A-Z][A-Z0-9_]{4,}$/, // CONSTANT_NAMES (5+ chars total, was causing B2B to be filtered)
+      ] : []),
+      
+      
+      /^[a-z]+[A-Z][a-z]*[A-Z][a-z]*$/, // camelCase with 2+ capital letters (handleUserClick)
+      /^[a-z]+-[a-z]+-[a-z-]+$/, // Multi-dash CSS classes like btn-primary-large
+      
+
+      
+      /^(src|alt|id|css|js|php|html|xml|json)$/i, // Common technical abbreviations
+      
+      // Generic technical patterns - skip for attributes
+      ...(isAttribute ? [] : [/^[a-zA-Z]*-[a-zA-Z-]*$/]), // Alphabetic strings with dash(es) but no spaces (CSS classes, kebab-case)
+      /^[A-Z]+_[A-Z0-9_]+$/, // CONSTANT_NAMES like API_KEY_123
+      /^[a-z]+([A-Z][a-z]*)+$/, // Simple camelCase like handleClick
+      /^\/.*\/[gimsuyx]*$/, // RegExp literals like /pattern/flags
     ];
 
     return nonTextualPatterns.some((pattern) => pattern.test(text.trim()));
   }
 
-  getFileExtension(fileName) {
+  getFileExtension(fileName: string) {
     const parts = fileName.split('.');
     return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
   }
 
   /**
    * Parse a single file and extract meaningful text
-   * @param {string} filePath - Path to the file
-   * @returns {Object} - Parsed result
    */
-  parseFile(filePath) {
+  parseFile(filePath: string) {
     const extension = path.extname(filePath).toLowerCase();
     const fileName = path.basename(filePath);
 
@@ -78,7 +159,7 @@ export class DocumentParser {
         filePath,
         fileName
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error reading file ${filePath}:`, error.message);
       return null;
     }
@@ -86,12 +167,8 @@ export class DocumentParser {
 
   /**
    * Parse content and extract meaningful text
-   * @param {string} content - File content
-   * @param {string} extension - File extension
-   * @param {{filePath: string, fileName: string}} [params] - Additional parameters
-   * @returns {Object} - Parsed result
    */
-  parseContent(content, extension, params) {
+  parseContent(content: string, extension: string, params?: ParseContentParams): ParsedResult | null {
     if (!this.supportedExtensions.includes(extension)) {
       console.warn(`Unsupported file type: ${extension}`);
       return null;
@@ -111,13 +188,9 @@ export class DocumentParser {
 
   /**
    * Extract text based on file type
-   * @param {string} content - File content
-   * @param {string} extension - File extension
-   * @returns {Object} - Extracted text categorized by type
    */
-  extractTextByType(content, extension) {
+  extractTextByType(content: string, extension: string) {
     const result = {
-      comments: [],
       strings: [],
       htmlText: [],
       attributes: [],
@@ -144,16 +217,14 @@ export class DocumentParser {
 
   /**
    * Parse JavaScript/TypeScript files
-   * @param {string} content - File content
-   * @returns {Object} - Extracted text
    */
-  parseJavaScriptTypeFiles(content) {
+  parseJavaScriptTypeFiles(content: string) {
     const result = {
-      strings: [],
+      strings: [] as ExtractedText[],
     };
 
     // Extract meaningful strings with position information
-    const stringResults = this.extractMeaningfulStringsWithPosition(content);
+    const stringResults = this.extractMeaningfulStringsWithPosition(content, 'javascript');
     result.strings.push(...stringResults);
 
     // Translation key extraction disabled
@@ -164,14 +235,12 @@ export class DocumentParser {
 
   /**
    * Parse JSX/TSX files - combines JavaScript parsing with HTML content extraction
-   * @param {string} content - File content
-   * @returns {Object} - Extracted text
    */
-  parseJSXFile(content) {
+  parseJSXFile(content: string) {
     const result = {
-      strings: [],
-      classNames: [],
-      ids: [],
+      strings: [] as ExtractedText[],
+      classNames: [] as string[],
+      ids: [] as string[],
     };
 
     // For JSX files, we need to separate JavaScript logic from JSX markup
@@ -183,8 +252,8 @@ export class DocumentParser {
     const returnMatches = [...content.matchAll(jsxReturnPattern)];
 
     // Keep track of JSX content positions to exclude them from string extraction
-    const jsxRanges = [];
-    
+    const jsxRanges: { start: number; end: number }[] = [];
+
     // Parse each JSX return statement as HTML content
     returnMatches.forEach((match) => {
       const jsxContent = match[1];
@@ -198,7 +267,8 @@ export class DocumentParser {
         jsxContent,
         true,
         jsxContentStart,
-        content
+        content,
+        'html'
       );
 
       // Add HTML results
@@ -207,7 +277,7 @@ export class DocumentParser {
     });
 
     // Now extract JavaScript strings, but exclude those within JSX ranges
-    const stringResults = this.extractJavaScriptStringsExcludingJSX(content, jsxRanges);
+    const stringResults = this.extractJavaScriptStringsExcludingJSX(content, jsxRanges, 'javascript');
     result.strings.push(...stringResults);
 
     return result;
@@ -215,12 +285,13 @@ export class DocumentParser {
 
   /**
    * Extract JavaScript strings while excluding JSX ranges
-   * @param {string} content - File content
-   * @param {Array} jsxRanges - Array of {start, end} ranges to exclude
-   * @returns {Array} - Array of meaningful strings
    */
-  extractJavaScriptStringsExcludingJSX(content, jsxRanges) {
-    const allStrings = [];
+  extractJavaScriptStringsExcludingJSX(
+    content: string,
+    jsxRanges: { start: number, end: number }[],
+    contextType: 'javascript' | 'html' | 'vue' = 'javascript'
+  ) {
+    const allStrings: RegExpExecArray[] = [];
 
     // Extract all string literals with positions
     const patterns = [
@@ -247,7 +318,7 @@ export class DocumentParser {
     });
 
     // Now apply the same filtering logic as extractMeaningfulStringsWithPosition
-    const strings = [];
+    const strings: ExtractedText[] = [];
     const ignorePatterns = [
       /require\s*\(/,
       /import\s+.*\s+from\s+/,
@@ -316,7 +387,7 @@ export class DocumentParser {
 
         if (
           cleanString.trim().length > 2 && // Minimum 3 characters for meaningful text
-          !this.isNonTextualContent(cleanString)
+          !this.isNonTextualContent({ text: cleanString })
         ) {
           // Calculate positions for originalMatch (includes quotes)
           const originalPosition = this.getPositionInfo(
@@ -337,6 +408,7 @@ export class DocumentParser {
           strings.push({
             text: cleanString.replace(/\n/, '').trim(),
             type: 'string',
+            context: contextType,
             lineNumber: textPosition.lineNumber,
             startPosition: textPosition.columnStart,
             endPosition: textPosition.columnEnd,
@@ -361,7 +433,7 @@ export class DocumentParser {
    * Mask regex patterns in the string with asterisks and mask comments with spaces
    * to prevent misleading parsing.
    */
-  escapeRegExp(str) {
+  escapeRegExp(str: string) {
     // 1. Clear HTML tags and some URL patterns
     let temp = str.replace(/^https?:\/\//gm, (match) => ' '.repeat(match.length));
     temp = temp.replace(/<[^>]*>/gm, (match) => ' '.repeat(match.length));
@@ -381,12 +453,12 @@ export class DocumentParser {
     // 3. Find and clear regex patterns
     const regexPattern = /(\/(.*)\/+([gimuy]*))/gm;
     let regexpMatch;
-    let startPosition = null;
-    let endPosition = null;
+    let startPosition = -1;
+    let endPosition = -1;
 
     // - Mask regex expressions with asterisks
     while ((regexpMatch = regexPattern.exec(temp)) !== null) {
-      if (startPosition === null) {
+      if (startPosition === -1) {
         startPosition = regexpMatch.index;
       }
       const foundRegex = regexpMatch[0].replace(/^(!|=)\s{1,}?/, '').trim();
@@ -421,14 +493,12 @@ export class DocumentParser {
 
   /**
    * Extract meaningful strings from JavaScript code with position information
-   * @param {string} content - JavaScript content
-   * @returns {Array} - Array of meaningful strings with position data
    */
-  extractMeaningfulStringsWithPosition(content) {
-    const strings = [];
+  extractMeaningfulStringsWithPosition(content: string, contextType: 'javascript' | 'html' | 'vue' = 'javascript') {
+    const strings: ExtractedText[] = [];
 
     // Extract all string literals with positions - using simpler, more reliable patterns
-    const allStrings = [];
+    const allStrings: RegExpExecArray[] = [];
 
     // Double quoted strings
     const doubleQuotedPattern = /"(?:[^"\\]|\\.)*"/g;
@@ -527,7 +597,7 @@ export class DocumentParser {
 
         if (
           cleanString.trim().length > 2 && // Minimum 3 characters for meaningful text
-          !this.isNonTextualContent(cleanString)
+          !this.isNonTextualContent({ text: cleanString })
         ) {
           // Calculate positions for originalMatch (includes quotes)
           const originalPosition = this.getPositionInfo(
@@ -548,6 +618,7 @@ export class DocumentParser {
           strings.push({
             text: cleanString.replace(/\n/, '').trim(),
             type: 'string',
+            context: contextType,
             lineNumber: textPosition.lineNumber,
             startPosition: textPosition.columnStart,
             endPosition: textPosition.columnEnd,
@@ -570,11 +641,8 @@ export class DocumentParser {
 
   /**
    * Check if a string at given position is an HTML attribute value
-   * @param {string} content - Full content
-   * @param {number} stringIndex - Index of the string
-   * @returns {boolean} - True if it's an HTML attribute value
    */
-  isHtmlAttributeValue(content, stringIndex) {
+  isHtmlAttributeValue(content: string, stringIndex: number) {
     // Get context around the string (200 chars before and after)
     const contextStart = Math.max(0, stringIndex - 200);
     const contextEnd = Math.min(content.length, stringIndex + 200);
@@ -623,11 +691,8 @@ export class DocumentParser {
 
   /**
    * Check if a string at given position is inside a function call
-   * @param {string} content - Full content
-   * @param {number} stringIndex - Index of the string
-   * @returns {boolean} - True if it's inside a function call
    */
-  isInsideFunctionCall(content, stringIndex) {
+  isInsideFunctionCall(content: string, stringIndex: number) {
     // Look back from the string position to find function call patterns
     const searchStart = Math.max(0, stringIndex - 300);
     const beforeContent = content.substring(searchStart, stringIndex);
@@ -678,25 +743,21 @@ export class DocumentParser {
 
   /**
    * Extract meaningful strings from JavaScript code, ignoring console functions and other debug/log statements
-   * @param {string} content - JavaScript content
-   * @returns {Array} - Array of meaningful strings
    */
-  extractMeaningfulStrings(content) {
-    return this.extractMeaningfulStringsWithPosition(content).map(
+  extractMeaningfulStrings(content: string) {
+    return this.extractMeaningfulStringsWithPosition(content, 'html').map(
       (item) => item.text
     );
   }
 
   /**
    * Parse Vue files
-   * @param {string} content - File content
-   * @returns {Object} - Extracted text
    */
-  parseVueFile(content) {
+  parseVueFile(content: string) {
     const result = {
-      htmlText: [],
-      naturalLanguageAttributes: [],
-      strings: [],
+      htmlText: [] as ExtractedText[],
+      naturalLanguageAttributes: [] as ExtractedText[],
+      strings: [] as ExtractedText[],
     };
 
     // Extract template section
@@ -709,7 +770,7 @@ export class DocumentParser {
         content.indexOf(templateMatch[0]) +
         templateMatch[0].indexOf(templateContent);
 
-      const htmlResult = this.parseHtmlContent(templateContent);
+      const htmlResult = this.parseHtmlContent(templateContent, false, 0, undefined, 'vue');
 
       // Adjust positions for template content
       htmlResult.htmlText.forEach((item) => {
@@ -760,18 +821,16 @@ export class DocumentParser {
 
   /**
    * Parse HTML files
-   * @param {string} content - File content
-   * @returns {Object} - Extracted text
    */
-  parseHtmlFile(content) {
+  parseHtmlFile(content: string) {
     const result = {
-      htmlText: [],
-      naturalLanguageAttributes: [],
-      strings: [],
+      htmlText: [] as ExtractedText[],
+      naturalLanguageAttributes: [] as ExtractedText[],
+      strings: [] as ExtractedText[],
     };
 
     // First parse HTML content (excluding script/style)
-    const htmlResult = this.parseHtmlContent(content);
+    const htmlResult = this.parseHtmlContent(content, false, 0, undefined, 'html');
     result.htmlText.push(...htmlResult.htmlText);
     result.naturalLanguageAttributes.push(
       ...htmlResult.naturalLanguageAttributes
@@ -788,7 +847,7 @@ export class DocumentParser {
         scriptTagStart + scriptMatch[0].indexOf(scriptContent);
 
       const jsStrings =
-        this.extractMeaningfulStringsWithPosition(scriptContent);
+        this.extractMeaningfulStringsWithPosition(scriptContent, 'javascript');
       jsStrings.forEach((item) => {
         // Update position info to reflect the original file positions
         const originalPosition = this.getPositionInfo(
@@ -812,18 +871,17 @@ export class DocumentParser {
 
   /**
    * Parse HTML content with position information
-   * @param {string} content - HTML content
-   * @returns {Object} - Extracted text with position data
    */
   parseHtmlContent(
-    content,
+    content: string,
     isJSX = false,
     contentOffset = 0,
-    originalContent = null
+    originalContent?: string,
+    contextType: 'html' | 'vue' = 'html'
   ) {
     const result = {
-      htmlText: [],
-      naturalLanguageAttributes: [],
+      htmlText: [] as ExtractedText[],
+      naturalLanguageAttributes: [] as ExtractedText[],
     };
 
     // Natural language attributes to extract
@@ -857,7 +915,7 @@ export class DocumentParser {
         .replace(/\s+/g, ' ') // Normalize whitespace
         .replace(/\n/g, ' '); // Replace newlines with spaces
 
-      if (text && text.length > 0 && !this.isNonTextualContent(text)) {
+      if (text && text.length > 0 && !this.isNonTextualContent({ text })) {
         // Check if this match is inside script or style tags by looking at tag structure
         const matchStart = match.index;
         const beforeMatchIncludeTag = content.substring(0, matchStart + 1); // Include the opening >
@@ -931,6 +989,7 @@ export class DocumentParser {
             result.htmlText.push({
               text: text.replace(/\n/, '').trim(),
               type: 'htmlText',
+              context: contextType,
               lineNumber: textPosition.lineNumber,
               startPosition: textPosition.columnStart,
               endPosition: textPosition.columnEnd,
@@ -976,7 +1035,7 @@ export class DocumentParser {
           !isJSXExpression &&
           attributeValue &&
           attributeValue.length > 0 &&
-          !this.isNonTextualContent(attributeValue, true)
+          !this.isNonTextualContent({ text: attributeValue, isAttribute: true })
         ) {
           // Use original content for position calculation if provided (for JSX), otherwise use current content
           const contentForPosition = originalContent || content;
@@ -1004,6 +1063,7 @@ export class DocumentParser {
           result.naturalLanguageAttributes.push({
             text: attributeValue.replace(/\n/, '').trim(),
             type: 'attribute',
+            context: contextType,
             attribute: attrName,
             lineNumber: textPosition.lineNumber,
             startPosition: textPosition.columnStart,
@@ -1026,46 +1086,9 @@ export class DocumentParser {
   }
 
   /**
-   * Check if content is non-textual (like HTML entities, scripts, etc.)
-   * @param {string} text - Text to check
-   * @param {boolean} isAttribute - Whether this text is from an HTML attribute
-   * @returns {boolean} - True if non-textual
-   */
-  isNonTextualContent(text, isAttribute = false) {
-    // Skip HTML entities, URLs, file paths, and other non-natural language content
-    const nonTextualPatterns = [
-      /^&[a-zA-Z]+;$/, // HTML entities like &copy;
-      /^https?:\/\//, // URLs starting with http/https
-      /^\/[\/\w-]+$/, // File paths
-      /^[0-9\s\-\+\(\)]+$/, // Only numbers and symbols
-      /^[A-Z_]{5,}$/, // Long constants like API_KEY (5+ chars)
-      /^\s*$/, // Empty or whitespace only
-      /^[\w-]+\.(js|css|png|jpg|gif|svg)$/i, // File names
-      /^[a-z]+[A-Z][a-z]*[A-Z][a-z]*$/, // camelCase with 2+ capital letters (handleUserClick)
-      /^[a-z]+-[a-z]+-[a-z-]+$/, // Multi-dash CSS classes like btn-primary-large
-      /^[a-z]+_[a-z_]+$/i, // snake_case variables
-      /api\..*\.com/i, // API URLs
-      /^(ok|yes|no|true|false)$/i, // Very short technical words
-      /^\w{1,2}$/, // Very short strings (1-2 chars)
-      /^(src|alt|id|css|js|php|html|xml|json)$/i, // Common technical abbreviations
-      // Generic technical patterns - skip for attributes
-      ...(isAttribute ? [] : [/^[a-zA-Z]*-[a-zA-Z-]*$/]), // Alphabetic strings with dash(es) but no spaces (CSS classes, kebab-case)
-      /^[A-Z]+_[A-Z0-9_]+$/, // CONSTANT_NAMES like API_KEY_123
-      /^[a-z]+([A-Z][a-z]*)+$/, // Simple camelCase like handleClick
-      /^\/.*\/[gimsuyx]*$/, // RegExp literals like /pattern/flags
-    ];
-
-    return nonTextualPatterns.some((pattern) => pattern.test(text.trim()));
-  }
-
-  /**
    * Get position information for a match
-   * @param {string} content - Full content
-   * @param {number} startIndex - Start index of match
-   * @param {number} endIndex - End index of match
-   * @returns {Object} - Position information
    */
-  getPositionInfo(content, startIndex, endIndex) {
+  getPositionInfo(content: string, startIndex: number, endIndex: number): PositionInfo {
     const beforeMatch = content.substring(0, startIndex);
     const lines = beforeMatch.split('\n');
     const lineNumber = lines.length;
@@ -1090,11 +1113,9 @@ export class DocumentParser {
 
   /**
    * Parse a directory recursively
-   * @param {string} dirPath - Directory path
-   * @returns {Array} - Array of parsed file results
    */
-  parseDirectory(dirPath) {
-    const results = [];
+  parseDirectory(dirPath: string) {
+    const results: ParsedResult[] = [];
 
     try {
       const items = fs.readdirSync(dirPath);
@@ -1119,24 +1140,20 @@ export class DocumentParser {
           }
         } else if (stat.isFile()) {
           const result = this.parseFile(fullPath);
-          if (result) {
-            results.push(result);
-          }
+          if (result) results.push(result);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error reading directory ${dirPath}:`, error.message);
     }
 
-    return results;
+    return results.filter(Boolean);
   }
 
   /**
    * Filter out empty or meaningless text
-   * @param {Array} texts - Array of text strings
-   * @returns {Array} - Filtered array
    */
-  filterMeaningfulText(texts) {
+  filterMeaningfulText(texts: any[]) {
     return texts
       .filter((text) => {
         if (!text || typeof text !== 'string') return false;
@@ -1165,11 +1182,9 @@ export class DocumentParser {
 
   /**
    * Generate a summary report
-   * @param {Array} results - Parsed results
-   * @returns {Object} - Summary report
    */
-  generateSummary(results) {
-    const summary = {
+  generateSummary(results: ParsedResult[]) {
+    const summary: Summary = {
       totalFiles: results.length,
       fileTypes: {},
       totalTexts: 0,
@@ -1187,11 +1202,11 @@ export class DocumentParser {
       summary.fileTypes[ext] = (summary.fileTypes[ext] || 0) + 1;
 
       // Collect all texts with position information
-      Object.keys(result.extractedText).forEach((textType) => {
+      (Object.keys(result.extractedText) as (keyof typeof result.extractedText)[]).forEach((textType) => {
         const texts = result.extractedText[textType];
         if (Array.isArray(texts)) {
-          summary.textTypes[textType] =
-            (summary.textTypes[textType] || 0) + texts.length;
+          (summary.textTypes as any)[textType] =
+            ((summary.textTypes as any)[textType] || 0) + texts.length;
           summary.totalTexts += texts.length;
 
           texts.forEach((textItem) => {
@@ -1201,26 +1216,26 @@ export class DocumentParser {
                 file: result.fileName,
                 filePath: result.filePath,
               });
-            } else {
+            }/*  else {
               // Backward compatibility for old format
               summary.allTexts.push({
-                text: textItem.replace(/\n/, '').trim(),
+                text: (textItem as any)?.replace(/\n/, '')?.trim(),
                 type: textType,
                 file: result.fileName,
                 filePath: result.filePath,
               });
-            }
+            } */
           });
         }
       });
     });
 
     // Sort allTexts by lineNumber first, then by startPosition
-    summary.allTexts.sort((a, b) => {
-      if (a.lineNumber !== b.lineNumber) {
-        return a.lineNumber - b.lineNumber;
+    summary.allTexts.sort((a, b) => {      
+      if ((a?.lineNumber ?? 0) !== (b?.lineNumber ?? 0)) {
+        return (a?.lineNumber ?? 0) - (b?.lineNumber ?? 0);
       }
-      return a.startPosition - b.startPosition;
+      return (a?.startPosition ?? 0) - (b?.startPosition ?? 0);
     });
 
     return summary;
@@ -1228,10 +1243,8 @@ export class DocumentParser {
 
   /**
    * Export results to JSON file
-   * @param {Array} results - Parsed results
-   * @param {string} outputPath - Output file path
    */
-  exportToJson(results, outputPath) {
+  exportToJson(results: ParsedResult[], outputPath: string) {
     const summary = this.generateSummary(results);
     const output = {
       metadata: {
@@ -1253,17 +1266,15 @@ export class DocumentParser {
       
       fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), 'utf8');
       console.log(`Results exported to: ${outputPath}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error writing to file: ${error.message}`);
     }
   }
 
   /**
    * Export meaningful texts to a simple text file
-   * @param {Array} results - Parsed results
-   * @param {string} outputPath - Output file path
    */
-  exportToText(results, outputPath) {
+  exportToText(results: ParsedResult[], outputPath: string) {
     const summary = this.generateSummary(results);
     let content = `Document Parser Results\n`;
     content += `======================\n\n`;
@@ -1276,7 +1287,7 @@ export class DocumentParser {
     });
 
     content += `\nText Types:\n`;
-    Object.keys(summary.textTypes).forEach((type) => {
+    (Object.keys(summary.textTypes) as (keyof typeof summary.textTypes)[]).forEach((type) => {
       content += `  ${type}: ${summary.textTypes[type]} items\n`;
     });
 
@@ -1313,7 +1324,7 @@ export class DocumentParser {
       
       fs.writeFileSync(outputPath, content, 'utf8');
       console.log(`Text results exported to: ${outputPath}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error writing to file: ${error.message}`);
     }
   }
