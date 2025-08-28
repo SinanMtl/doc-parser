@@ -21,20 +21,7 @@ A powerful parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and 
 ## Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd doc-parser
-
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# For global installation
-npm install -g .
-
-# Or run locally without global installation
+npm install -g @sinanmtl/doc-parser
 ```
 
 ## Usage
@@ -80,9 +67,9 @@ npm run parse ./demo
 
 ```typescript
 // TypeScript (recommended)
-import { DocumentParser } from './dist/document-parser.js';
+import { DocumentParser } from '@sinanmtl/doc-parser';
 // or
-import DocumentParser from './dist/document-parser.js';
+import DocumentParser from '@sinanmtl/doc-parser';
 
 const parser = new DocumentParser();
 
