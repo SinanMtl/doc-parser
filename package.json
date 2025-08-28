@@ -1,5 +1,5 @@
 {
-  "name": "document-parser",
+  "name": "doc-parser",
   "version": "1.0.0",
   "description": "A parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files",
   "author": "Sinan Mutlu <smutludev@gmail.com>",
