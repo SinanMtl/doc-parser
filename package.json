@@ -1,12 +1,24 @@
 {
   "name": "@sinanmtl/doc-parser",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files",
   "author": "Sinan Mutlu <smutludev@gmail.com>",
   "license": "MIT",
-  "main": "dist/document-parser.js",
-  "types": "dist/document-parser.d.ts",
+  "main": "dist/document-parser.cjs",
+  "module": "dist/document-parser.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/document-parser.js",
+      "require": "./dist/document-parser.cjs",
+      "types": "./dist/document-parser.d.ts"
+    },
+    "./string-replace": {
+      "import": "./dist/string-replace.js",
+      "require": "./dist/string-replace.cjs",
+      "types": "./dist/string-replace.d.ts"
+    }
+  },
   "bin": {
     "doc-parser": "./dist/parse-cli.js"
   },

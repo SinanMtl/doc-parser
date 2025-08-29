@@ -10,17 +10,25 @@ export default defineConfig({
         'document-parser': resolve(__dirname, 'src/document-parser.ts'),
         'parse-cli': resolve(__dirname, 'src/parse-cli.ts'),
         'string-replace': resolve(__dirname, 'src/string-replace.ts')
-      },
-      formats: ['es']
+      }
     },
     outDir: 'dist',
     rollupOptions: {
       external: ['fs', 'path', 'process'],
-      output: {
-        preserveModules: false,
-        entryFileNames: '[name].js',
-        format: 'es',
-      }
+      output: [
+        {
+          format: 'es',
+          entryFileNames: '[name].js',
+          preserveModules: false,
+          exports: 'named'
+        },
+        {
+          format: 'cjs',
+          entryFileNames: '[name].cjs',
+          preserveModules: false,
+          exports: 'named'
+        }
+      ]
     }
   },
   resolve: {
