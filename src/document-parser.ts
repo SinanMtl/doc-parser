@@ -942,11 +942,23 @@ export class DocumentParser {
           const isJSXExpression =
             isJSX && (text.includes('{') || text.includes('}'));
 
-          // For Vue, skip template expressions like {{ $t('key') }}
+          // For Vue, skip template expressions like {{ $t('key') }} and Vue directives
           const isVueTemplateExpression =
             text.includes('{{') && text.includes('}}');
+          
+          // For Vue, skip content that contains Vue directives (starting with :)
+          const containsVueDirectives = text.includes(':') && /:\w+\s*=/.test(text);
+          
+          // Skip content that looks like JavaScript code (function calls, object properties, etc.)
+          const looksLikeJavaScript = 
+            /\w+\([^)]*\)/.test(text) || // function calls like func()
+            /\w+\.\w+/.test(text) || // object property access like obj.prop
+            /\w+:\s*['"]/.test(text) || // object properties like key: 'value'
+            text.includes('=>') || // arrow functions
+            text.includes('function') || // function declarations
+            /\$t\(/.test(text); // Vue i18n function calls
 
-          if (!isJSXExpression && !isVueTemplateExpression) {
+          if (!isJSXExpression && !isVueTemplateExpression && !containsVueDirectives && !looksLikeJavaScript) {
             // Keep the text as is, don't split into sentences
             // Use original content for position calculation if provided (for JSX), otherwise use current content
             const contentForPosition = originalContent || content;
@@ -1010,20 +1022,22 @@ export class DocumentParser {
 
     // Extract natural language attributes with position
     naturalLanguageAttrs.forEach((attrName) => {
+      // Create pattern that matches both regular attributes and Vue bindings
       const attrPattern = new RegExp(
-        `\\b${attrName}\\s*=\\s*["']([^"']+)["']`,
+        `(:|^|\\s)(${attrName})\\s*=\\s*["']([^"']+)["']`,
         'gi'
       );
       const attrMatches = [...content.matchAll(attrPattern)];
 
       attrMatches.forEach((match) => {
-        const attributeValue = match[1].trim();
+        const prefix = match[1]; // Could be ':', '^', or whitespace
+        const attributeName = match[2];
+        const attributeValue = match[3].trim();
         const fullMatch = match[0];
         const matchStart = match.index;
 
-        // Check if this attribute is a Vue.js dynamic binding (:attribute) or JSX expression
-        const charBeforeMatch = matchStart > 0 ? content[matchStart - 1] : '';
-        const isVueBinding = charBeforeMatch === ':';
+        // Skip Vue.js dynamic bindings (attributes starting with :)
+        const isVueBinding = prefix === ':';
 
         // For JSX, check if the attribute value contains JSX expressions (curly braces)
         const isJSXExpression =
@@ -1064,7 +1078,7 @@ export class DocumentParser {
             text: attributeValue.replace(/\n/, '').trim(),
             type: 'attribute',
             context: contextType,
-            attribute: attrName,
+            attribute: attributeName, // Use the actual attribute name from the match
             lineNumber: textPosition.lineNumber,
             startPosition: textPosition.columnStart,
             endPosition: textPosition.columnEnd,
