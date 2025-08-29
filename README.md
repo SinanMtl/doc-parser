@@ -5,18 +5,19 @@ A powerful parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and 
 ## Features
 
 - **Modern TypeScript**: Fully typed with TypeScript for better development experience
-- **Vite Build System**: Fast build process with Vite
+- **Vite Build System**: Fast build process with Vite and hot module replacement
+- **Dual Package Support**: Supports both ES Modules and CommonJS
 - **Multi-Format File Support**: Parses JavaScript, TypeScript, JSX, TSX, Vue, and HTML files
 - **Smart Text Extraction**: Extracts string literals, HTML text content, and natural language attributes
 - **Advanced Filtering**: Automatically filters out code fragments, function parameters, and technical strings
 - **Multi-Language Support**: Supports Unicode characters (Arabic, Chinese, Japanese, Korean, etc.)
 - **Recursive Directory Parsing**: Recursively scans directories
 - **Multiple Export Formats**: Exports results in JSON and text formats
-- **CLI Support**: Command-line interface usage
-- **ES Modules**: Uses modern JavaScript ES Modules syntax
+- **CLI Support**: Command-line interface usage with global installation
 - **Binary CLI Tool**: Global usage with `doc-parser` command
 - **Context-Aware Parsing**: Parses different sections separately in JSX and Vue files
-- **Type Safety**: Full TypeScript support with type definitions
+- **Type Safety**: Full TypeScript support with comprehensive type definitions
+- **String Replacement Utilities**: Additional utilities for string manipulation
 
 ## Installation
 
@@ -48,8 +49,8 @@ doc-parser ./src --output-json results.json --output-text results.txt
 doc-parser --help
 
 # Local usage (without global installation)
-node ./lib/parse-cli.js ./src
-node ./lib/parse-cli.js ./demo --output-json demo-results.json
+node ./dist/parse-cli.js ./src
+node ./dist/parse-cli.js ./demo --output-json demo-results.json
 ```
 
 ### Package.json Scripts
@@ -61,6 +62,15 @@ npm run example
 # Parse command (requires parameter)
 npm run parse ./src
 npm run parse ./demo
+
+# Build the project
+npm run build
+
+# Build in development/watch mode  
+npm run dev
+
+# Clean build directory
+npm run clean
 ```
 
 ### Programmatic Usage
@@ -91,13 +101,16 @@ console.log(summary);
 
 ```javascript
 // JavaScript ES Modules
-import { DocumentParser } from './dist/document-parser.js';
+import { DocumentParser } from '@sinanmtl/doc-parser';
 
 const parser = new DocumentParser();
 
 // Parse with type safety
 const result = parser.parseFile('./demo/landing.jsx');
 console.log(result);
+
+// Use string replacement utilities
+import { StringReplace } from '@sinanmtl/doc-parser/string-replace';
 ```
 
 ### Development Scripts
@@ -114,6 +127,11 @@ npm run clean
 
 # Run example
 npm run example
+
+# Parse with custom parameters
+npm run parse ./src
+npm run parse ./demo
+```
 
 ## Extracted Text Types
 
@@ -243,17 +261,18 @@ The parser supports Latin, Arabic, Chinese, Japanese, Korean, Cyrillic, and othe
 ## Testing
 
 ```bash
-# Directly
-node ./lib/test-parser.js
-
-# To parse demo files
+# Run tests and examples
 npm run example
 
-# or
-doc-parser ./demo --output-json demo-results.json --output-text demo-results.txt
+# Parse demo files directly
+doc-parser ./demo --output-json ./output/demo-results.json --output-text ./output/demo-results.txt
+
+# Parse with custom parameters
+npm run parse ./src
+npm run parse ./demo
 ```
 
-These commands parse test files and export results in JSON and text formats.
+These commands parse test files and export results in JSON and text formats to the `output/` directory.
 
 ## Supported File Types
 
@@ -268,15 +287,25 @@ These commands parse test files and export results in JSON and text formats.
 
 ```
 doc-parser/
-├── package.json          # Project configuration and scripts
-├── README.md            # This file
-├── lib/                 # Main library files
-│   ├── document-parser.js  # Main parser class
-│   └── parse-cli.js        # CLI tool
-└── demo/                # Demo files
-    ├── landing.html     # HTML demo
-    ├── landing.jsx      # React JSX demo
-    └── landing.vue      # Vue demo
+├── package.json         # Project configuration and scripts
+├── README.md            # This file  
+├── tsconfig.json        # TypeScript configuration
+├── vite.config.ts       # Vite build configuration
+├── src/                 # Source files (TypeScript)
+│   ├── document-parser.ts  # Main parser class
+│   ├── parse-cli.ts        # CLI tool
+│   └── string-replace.ts   # String replacement utilities
+├── dist/                # Built files (generated)
+│   ├── document-parser.js  # ES Module build
+│   ├── document-parser.cjs # CommonJS build
+│   ├── document-parser.d.ts # Type definitions
+│   └── parse-cli.js        # CLI executable
+├── demo/                # Demo files
+│   ├── landing.html     # HTML demo
+│   ├── landing.jsx      # React JSX demo
+│   ├── landing.vue      # Vue demo
+└── plugins/             # Build plugins
+    └── minifyPublicJs.ts # Vite plugin for JS minification
 ```
 
 ## Excluded Directories
