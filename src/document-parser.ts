@@ -693,7 +693,14 @@ export class DocumentParser {
    * Check if a string at given position is inside a function call
    */
   isInsideFunctionCall(content: string, stringIndex: number) {
-    // Look back from the string position to find function call patterns
+    // Check if string is inside console function calls first
+    const beforeString = content.substring(Math.max(0, stringIndex - 200), stringIndex);
+    const isInConsoleLog = /console\.(log|error|warn|info|debug|trace)\s*\(\s*['"`]*$/.test(beforeString);
+    if (isInConsoleLog) {
+      return true; // Always ignore console function parameters
+    }
+    
+    // Look back from the string position to find if we're in function call parameters
     const searchStart = Math.max(0, stringIndex - 300);
     const beforeContent = content.substring(searchStart, stringIndex);
     
@@ -701,21 +708,23 @@ export class DocumentParser {
     const openParenPositions = [];
     for (let i = beforeContent.length - 1; i >= 0; i--) {
       if (beforeContent[i] === '(') {
-        // Check if this is part of a function call
+        // Check if this is part of a function call (not array access, if statement, etc.)
         const beforeParen = beforeContent.substring(0, i).trim();
         
         // Function call patterns:
         // 1. functionName(
         // 2. object.method(
         // 3. object.method.chain(
-        // 4. array[index](
-        if (/(\w+(\.\w+)*|\]\s*)$/.test(beforeParen)) {
+        // But NOT: if(, for(, while(, switch(, catch(
+        const isFunctionCall = /(\w+(\.\w+)*|\]\s*)$/.test(beforeParen) && !/\b(if|for|while|switch|catch|with)\s*$/.test(beforeParen);
+        
+        if (isFunctionCall) {
           openParenPositions.push(searchStart + i);
         }
       }
     }
     
-    // For each opening parenthesis, check if our string is inside that function call
+    // For each function call opening parenthesis, check if our string is in its direct parameters
     for (const openParenPos of openParenPositions) {
       // Find the matching closing parenthesis
       let parenCount = 1;
@@ -734,6 +743,25 @@ export class DocumentParser {
       
       // Check if our string is between the opening and closing parentheses
       if (closingParenPos && stringIndex > openParenPos && stringIndex < closingParenPos) {
+        // Now we need to determine if this string is in a meaningful context
+        // Even if it's in function parameters, if it's part of an object literal or array
+        // that contains meaningful data (like event tracking), we should include it
+        
+        // Get the content between the parentheses
+        const paramContent = content.substring(openParenPos + 1, closingParenPos);
+        
+        // Check if this looks like a simple function call with primitive parameters
+        // vs. an object/array with meaningful data
+        const hasObjectLiteral = paramContent.includes('{') && paramContent.includes('}');
+        const hasArrayLiteral = paramContent.includes('[') && paramContent.includes(']');
+        
+        // If there are object literals or arrays in the parameters, 
+        // the strings inside them might be meaningful (like event data)
+        if (hasObjectLiteral || hasArrayLiteral) {
+          return false; // Don't ignore strings in object/array literals
+        }
+        
+        // For simple function calls with primitive parameters, ignore the strings
         return true;
       }
     }

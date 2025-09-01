@@ -1,6 +1,6 @@
 {
   "name": "@sinanmtl/doc-parser",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "A parser that extracts meaningful text from JS, JSX, TS, TSX, Vue, and HTML files",
   "author": "Sinan Mutlu <smutludev@gmail.com>",
   "license": "MIT",
