@@ -92,7 +92,7 @@ export class DocumentParser {
       /^[A-Z_]{5,}$/, // Long constants like API_KEY (5+ chars)
       /^\s*$/, // Empty or whitespace only
       /^[\w-]+\.(js|css|png|jpg|gif|svg)$/i, // File names
-      /^[a-z]+([A-Z][a-z]*)*$/, // camelCase function names like handleUserClick
+      /^[a-z]+([A-Z][a-z]*)+$/, // camelCase function names like handleUserClick (requires at least one capital letter)
       /^[a-z]+-[a-z-]+$/, // CSS class names like btn-primary
       /^[a-z]+_[a-z_]+$/i, // snake_case variables
       /api\..*\.com/i, // API URLs
@@ -133,7 +133,6 @@ export class DocumentParser {
       // Generic technical patterns - skip for attributes
       ...(isAttribute ? [] : [/^[a-zA-Z]*-[a-zA-Z-]*$/]), // Alphabetic strings with dash(es) but no spaces (CSS classes, kebab-case)
       /^[A-Z]+_[A-Z0-9_]+$/, // CONSTANT_NAMES like API_KEY_123
-      /^[a-z]+([A-Z][a-z]*)+$/, // Simple camelCase like handleClick
       /^\/.*\/[gimsuyx]*$/, // RegExp literals like /pattern/flags
     ];
 
